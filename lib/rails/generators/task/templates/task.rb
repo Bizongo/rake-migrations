@@ -9,7 +9,7 @@
 namespace :<%= file_name %> do
 <% actions.each do |action| -%>
   desc "TODO"
-  task <%= @random_char_str %>_<%= action %>: [:environment] do
+  task "<%= @random_char_str %>_<%= action %>": [:environment] do
 
 
     # DO NOT REMOVE THIS PART. MARKS THE RAKE AS COMPLETE IN THE DATABASE
