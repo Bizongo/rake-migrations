@@ -9,15 +9,11 @@ module RakeMigrations
     source_root File.expand_path('../templates', __FILE__)
 
     def create_migration_file
-      migration_template "migration.rb", "db/migrate/create_rake_migrations_table.rb"
+      copy_migration_template_based_on_rails_version
 
-      if args.first == "pg"
-        template("rake_migrations_check_pg.rb", "config/rake_migrations_check.rb")
-      else
-        template("rake_migrations_check.rb", "config/rake_migrations_check.rb")
-      end
+      # copying the Devops task template
+      template("devops_rake_utils.rake", "lib/tasks/devops_rake_utils.rake")
 
-      write_to_post_merge_hook
     end
 
     def self.next_migration_number(dirname)
@@ -36,5 +32,25 @@ TEXT
       end
       `chmod 777 #{post_merge_file}`
     end
+
+    private
+    def copy_migration_template_based_on_rails_version
+
+      host_rails_version = Rails.version
+      version_info = host_rails_version.split('.')
+
+      major_version = version_info.first
+      minor_version = version_info.second
+
+      if major_version.to_i <= 4
+        migration_template "migration_rails_on_and_before_v4.rb", "db/migrate/create_rake_migrations_table.rb"
+      else
+        @rails_major_minor_version = "[#{major_version}.#{minor_version}]"
+        migration_template "migration_rails_after_v4.rb", "db/migrate/create_rake_migrations_table.rb",
+                           rails_major_minor_version: @rails_major_minor_version
+
+      end
+    end
+
   end
 end

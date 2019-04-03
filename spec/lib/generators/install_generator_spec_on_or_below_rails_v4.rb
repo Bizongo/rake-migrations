@@ -4,10 +4,14 @@ require "rails/generators/rake_migrations/install_generator"
 describe RakeMigrations::InstallGenerator do
   destination File.expand_path("../../tmp", __FILE__)
 
-  context "migration and mysql2" do
-    before(:all) do
-      prepare_destination
-      run_generator
+  context "migration and postgresql" do
+
+    before(:context) do
+      RSpec::Mocks.with_temporary_scope do
+        prepare_destination
+        allow(Rails).to receive(:version).and_return('4.2')
+        run_generator
+      end
     end
 
     it "should create a migration" do
@@ -22,19 +26,9 @@ describe RakeMigrations::InstallGenerator do
       assert_migration "db/migrate/create_rake_migrations_table.rb", /t.string :version/
     end
 
-    it "should copy the rake_migrations_check file with mysql2 support" do
-      assert_file "config/rake_migrations_check.rb", /Mysql2::Client/
-    end
-  end
-
-  context "postgresql" do
-    before(:all) do
-      prepare_destination
-      run_generator ["pg"]
+    it "should copy the devop rakes util with RakeMigrations.check function call" do
+      assert_file "lib/tasks/devops_rake_utils.rake", /RakeMigrations.check/
     end
 
-    it "should copy the rake_migrations_check file with pg support" do
-      assert_file "config/rake_migrations_check.rb", /PG.connect/
-    end
   end
 end

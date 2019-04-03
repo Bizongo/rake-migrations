@@ -1,101 +1,116 @@
 Rake Migrations
 ===============
-[![GitHub version](https://badge.fury.io/gh/eyaleizenberg%2Frake-migrations.png)](http://badge.fury.io/gh/eyaleizenberg%2Frake-migrations)
-[![Build Status](https://travis-ci.org/eyaleizenberg/rake-migrations.svg?branch=master)](https://travis-ci.org/eyaleizenberg/rake-migrations)
-[![Code Climate](https://codeclimate.com/github/eyaleizenberg/rake-migrations/badges/gpa.svg)](https://codeclimate.com/github/eyaleizenberg/rake-migrations)
 
-This gem helps you and your team members keep track of 'run once' rake tasks.
+This gem helps you and your team members keep track of which rake tasks are yet to be run on a particular system. The logic is similar to that of how `rake db:migrate` is used.
+
+For a more verbose explanation please refer to [this blog post](http://eyaleizenberg.blogspot.com/2014/08/how-to-keep-track-of-rails-rake-tasks.html).
 
 ## Requirements
-At the moment I have only tested this on Rails 3.2.X running mysql (uses mysql2 gem) or postgresql on Mac OS X.
+At the moment I have only tested this on Rails 3.2.X, 4.2.x and 5.1.x  running postgresql on Mac OS X.
 If you can help by testing this on different versions, databases and platforms, let me know.
 
 ## Installation
 First, add this this to your gemfile:
 ```ruby
-gem 'rake_migrations'
+gem 'rake_migrations', git: 'https://github.com/Bizongo/rake-migrations.git'
 ```
 
 Then, run:
-```ruby
+```sh
 bundle install
 
-# For mysql
+
 rails g rake_migrations:install
 
-# For postgresql
-rails g rake_migrations:install pg
-
-# Don't forget to migrate (both for mysql and pg)
+# Don't forget to migrate
 rake db:migrate
 ```
 
-Finally, open the file 'config/rake_migrations_check.rb' in your project and replace "database name" with your database's name and the "username" with your database's username (remove smaller/greater than symbols):
+This will copy a db schema migration (`rake_migrations`) file and a helper rake task (`devops_rake_utils.rake`) in your `lib/tasks/` directory
 
+Finally, add the following file in your `config/initializers` folder to provide the gem with database credentials via the `database.yml` file
 ```ruby
-# For mysql2
-client = Mysql2::Client.new(host: "localhost", username: "<username>", database: "<database name>")
-
-# For postgresql
-client = PG.connect(host: "localhost", user: "<username>", dbname: "<database name>")
+# rake_migrations.rb
+RakeMigrations.configure do |config|
+  config.database_name = DATABASE_CONFIG[Rails.env]['database']
+  config.hostname = DATABASE_CONFIG[Rails.env]['host']
+  config.username = DATABASE_CONFIG[Rails.env]['username']
+  config.password = DATABASE_CONFIG[Rails.env]['password']
+end 
 ```
 
-## Use
+## Usage
 Whenever somebody from your team wants to create a new run once task, simply generate it by running:
 
-```ruby
+```sh
 rails g task <namespace> <task>
 ```
 
 For example:
 
-```ruby
-rails g task users update_some_field
+```sh
+rails g task migrations_test testing_the_gem
 ```
 
-This will generate a file under 'lib/tasks/rake_migrations' with a timestamp and the following content:
+This will generate a file under `lib/tasks/rake_migrations` with a timestamp and six random character prefixed filename and the following content:
 
 ```ruby
+# 
+  
 # Checklist:
 # 1. Re-runnable on production?
 # 2. Is there a chance emails will be sent?
 # 3. puts ids & logs (progress log)
-# 4. Can you update the records with an update all instead of instantizing?
+# 4. Should this be inside a Active Record Transaction block?
 # 5. Are there any callbacks?
 # 6. Performance issues?
-# 7. Scoping to account
 
-namespace :users do
-  desc "update run_at field to get value as in start_time"
-  task update_some_field: [:environment] do
-    # EXAMPLE
-    User.update_all({role_id: 1}, {role_id: 2})
+namespace :migrations_test do
+  desc "TODO"
+  task testing_the_gem: [:environment] do
 
-    # DO NOT REMOVE THIS PART
+    # DO NOT REMOVE THIS PART. MARKS THE RAKE AS COMPLETE IN THE DATABASE
     RakeMigration.mark_complete(__FILE__)
   end
 end
+
 ```
 
-Simply insert your code above the "DO NOT REMOVE THIS PART" line. The checklist is there to help you and the person who is code-reviewing your code to think of problems that might occur from your rake task. Afterwards you can run the rake task normally:
+Simply insert your code above the "DO NOT REMOVE THIS PART" line. The checklist is there to help you and the person who is code-reviewing your code to think of problems that might occur from your rake task.
 
-```ruby
-rake users:update_some_field
+Afterwards, whenever we need to check whether pending rake tasks, we run the following helper rake task...
+
+```sh
+rake devops_rake_utils:list_pending_rake_tasks
 ```
 
-Commit your new file into your repository.
+... which will give the following output in case some tasks aren't mapped to the `rake_migrations` database table
 
-Afterwards, through the magic of git-hooks, whenever someone pulls this branch (or a branch that has this file in it), he will see a message in the terminal telling him which rakes need to be run:
-
-```ruby
+```sh
 You need to run the following rakes:
 ------------------------------------
-rake users:update_some_field
+rake migrations_test:testing_the_gem
 ```
+
+You can run the rake task normally:
+
+```sh
+rake migrations_test:testing_the_gem
+```
+
+In case all of the rake files have been mapped across the `rake_migrations` table, you will receive the following message
+
+```sh
+All rake files are mapped in the DB! No untracked rake tasks are present!
+```
+
+## Caveats
+- In order to make sure the gem is serving the intended purpose, please make sure every rake file has just one namespace and one task only
+- Adding support for multiple tasks beneath a single name space in a single rake file might a feature request we may consider in the future
 
 ## Issues, suggestions and forks.
 Feel free to open issues, send suggestions and fork this repository.
 
-This gem was developed during my work at [Samanage](http://www.samanage.com/).
+This gem was developed by [Eyal Eizenberg](http://eyaleizenberg.blogspot.com/2014/08/how-to-keep-track-of-rails-rake-tasks.html) and enhanced by [Abhishek Juneja](https://github.com/darth-dodo/).
 
 Thanks and Enjoy! :)

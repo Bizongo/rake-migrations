@@ -1,11 +1,9 @@
 # Checklist:
-# 1. Re-runnable on production?
-# 2. Is there a chance emails will be sent?
-# 3. puts ids & logs (progress log)
-# 4. Can you update the records with an update all instead of instantizing?
-# 5. Are there any callbacks?
-# 6. Performance issues?
-# 7. Scoping to account
+# - Should this be inside a Active Record Transaction block?
+# - Do we need to notify specific stakeholders about the database changes?
+# - Any callbacks, emails or notifications triggered?
+# - Appropriate prints and progress logs?
+# - Performance issues and manual garbage collection required?
 
 namespace :<%= file_name %> do
 <% actions.each do |action| -%>
@@ -13,7 +11,7 @@ namespace :<%= file_name %> do
   task <%= action %>: [:environment] do
 
 
-    # DO NOT REMOVE THIS PART
+    # DO NOT REMOVE THIS PART. MARKS THE RAKE AS COMPLETE IN THE DATABASE
     RakeMigration.mark_complete(__FILE__)
   end
 <% end -%>

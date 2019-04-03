@@ -1,6 +1,6 @@
 class RakeMigration < ::ActiveRecord::Base
   def self.version_from_path(path)
-    path.split('/').last[/\d+/]
+    path.split('/').last.split('_').first(2).join('_')
   end
 
   def self.findcreate_by_version(rake_id)
@@ -15,4 +15,9 @@ class RakeMigration < ::ActiveRecord::Base
       findcreate_by_version(rake_id)
     end
   end
+
+  def self.check_for_pending_tasks
+    RakeMigrations.check
+  end
+
 end
