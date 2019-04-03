@@ -18,9 +18,10 @@ module RakeMigrations
     client = @config.generate_database_client
 
     results = client.exec("select * from rake_migrations").map {|res| res["version"] }
-    rake_migrations_lib = "#{`pwd`.strip}/lib/tasks/rake_migrations/*"
+    rake_migrations_lib = "#{`pwd`.strip}/lib/tasks/rake_migrations"
+    list_of_files = Dir[ File.join(rake_migrations_lib, '**', '*') ].reject { |p| File.directory? p }
 
-    rake_files = Dir[rake_migrations_lib].sort.map do |file|
+    rake_files = list_of_files.sort.map do |file|
       rake_id = RakeMigration.version_from_path(file)
 
       if !results.include?(rake_id)
