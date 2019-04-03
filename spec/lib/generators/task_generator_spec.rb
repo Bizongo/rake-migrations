@@ -22,9 +22,6 @@ describe TaskGenerator do
       # we need to fetch the directory due to a substring of the filename being generated using random characters
       @all_files = Dir.entries("./spec/lib/tmp/lib/tasks/rake_migrations/users/").select {|f| !File.directory? f}  # https://stackoverflow.com/a/15511438
       @created_rake_file = @all_files.first
-      puts @all_files
-      puts "File name is #{@created_rake_file}"
-      # puts @created_rake_file
     end
 
     it "should assert file is created" do
