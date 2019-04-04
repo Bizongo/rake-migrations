@@ -5,10 +5,9 @@
 # - Appropriate prints and progress logs?
 # - Performance issues and manual garbage collection required?
 
-namespace :<%= file_name %> do
-<% actions.each do |action| -%>
+namespace :users do
   desc "TODO"
-  task <%= action %>: [:environment] do
+  task do_something: [:environment] do
     ActiveRecord::Base.transaction do
       # ADD YOUR CODE HERE
 
@@ -18,5 +17,4 @@ namespace :<%= file_name %> do
     RakeMigration.mark_complete(__FILE__)
 
   end
-<% end -%>
 end
