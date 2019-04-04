@@ -9,10 +9,12 @@ namespace :users do
   desc "TODO"
   task do_something: [:environment] do
     ActiveRecord::Base.transaction do
+      # ADD YOUR CODE HERE
 
-
-      # DO NOT REMOVE THIS PART. MARKS THE RAKE AS COMPLETE IN THE DATABASE
-      RakeMigration.mark_complete(__FILE__)
     end
+
+    # DO NOT REMOVE THIS PART. MARKS THE RAKE AS COMPLETE IN THE DATABASE
+    RakeMigration.mark_complete(__FILE__)
+
   end
 end
